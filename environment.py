@@ -28,22 +28,44 @@ class connect_4_game:
     
     def move(self,board,heights,mark,col):
         height = heights[col]
-        move_ind = height*self.cols + col
-        new_board = board[:move_ind] + mark + board[move_ind+1:]
+        move_idx = height*self.cols + col
+        new_board = board[:move_idx] + mark + board[move_idx+1:]
         col_height = height+1
         new_heights = heights[:col] + (col_height) + heights[col+1:]
-        return new_board, new_heights, move_ind, col_height
+        return new_board, new_heights, move_idx, col_height
     
-    def check_win(self, board, heights, prev_mv_mark, prev_mv_col, prev_mv_idx, prev_mv_ht):
+    def check_win(self, board, heights, mv_mark, mv_col, mv_idx, mv_ht):
         win_cond = self.win_cond
         width = self.cols
+        max_right = width - mv_col -1
+        max_left = mv_col
         #vertical check
-        if prev_mv_ht >= win_cond:
+        if mv_ht >= win_cond:
             for i in range(1,win_cond):
-                if(board[prev_mv_idx - (i * width)] != prev_mv_mark):
+                if(board[mv_idx - (i * width)] != mv_mark):
                     break
             else: #if no loop break
                 return True
+            
+        #horizontal check
+        aligned = 1
+        for skew in range(1,min(win_cond,max_right+1)): #right check
+            if board[mv_idx + skew] == mv_mark:
+                aligned +=1
+                if aligned >= win_cond:
+                    return True
+            else:
+                break
+        for skew in range(1,min(win_cond,max_left+1)):
+            if board[mv_idx - skew] == mv_mark:
+                aligned +=1
+                if aligned >= win_cond:
+                    return True
+            else:
+                break
+
+        
+                        
         
                  
 
