@@ -37,8 +37,8 @@ class connect_4_game:
     def check_win(self, board, heights, mv_mark, mv_col, mv_idx, mv_ht):
         win_cond = self.win_cond
         width = self.cols
-        max_right = width - mv_col -1
-        max_left = mv_col
+        max_right = width - mv_col
+        max_left = mv_col + 1
         #vertical check
         if mv_ht >= win_cond:
             for i in range(1,win_cond):
@@ -49,14 +49,14 @@ class connect_4_game:
             
         #horizontal check
         aligned = 1
-        for skew in range(1,min(win_cond,max_right+1)): #right check
+        for skew in range(1,max_right): #right check
             if board[mv_idx + skew] == mv_mark:
                 aligned +=1
                 if aligned >= win_cond:
                     return True
             else:
                 break
-        for skew in range(1,min(win_cond,max_left+1)):
+        for skew in range(1,max_left):
             if board[mv_idx - skew] == mv_mark:
                 aligned +=1
                 if aligned >= win_cond:
