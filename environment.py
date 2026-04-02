@@ -9,6 +9,19 @@ class connect_4_game:
         self.rows = rows
         self.cols = cols
         self.win_cond = win_cond
+
     def init_state(self, who_turn = 1):
-        board = (0,) * self.rows * self.cols
-        
+        cols = self.cols
+        rows = self.rows
+        board = (0,) * rows * cols
+        heights = (0,) * cols
+        last_move = None
+        return (board, heights, last_move, who_turn)
+
+    def display_board(self, board):
+        r = self.rows
+        c = self.cols
+        #equivalent to len(boardlist) - col, -1, -col to loop reverse
+        print(list(range(c)))
+        for i in range(r*c - c, -1, -c):
+            print(board[i:i+c])
