@@ -16,7 +16,7 @@ class connect_4_game:
         board = (0,) * rows * cols
         heights = (0,) * cols
         last_move = None
-        return (board, heights, last_move, who_turn)
+        return board, heights, last_move, who_turn
 
     def display_board(self, board):
         r = self.rows
@@ -25,3 +25,10 @@ class connect_4_game:
         print(list(range(c)))
         for i in range(r*c - c, -1, -c):
             print(board[i:i+c])
+    
+    def move(self,board,mark,col):
+        height = self.heights[col]
+        move_ind = height*self.cols + col
+        new_board = board[:move_ind] + mark + board[move_ind+1:]
+        new_height = height[:col] + (height+1) + height[col+1:]
+        return new_board, new_height
