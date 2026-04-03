@@ -26,6 +26,10 @@ class connect_4_game:
         for i in range(r*c - c, -1, -c):
             print(board[i:i+c])
     
+    def valid_moves(self,heights):
+        moveset = [col for col in range(self.cols) if heights[col] < self.rows]
+        return moveset
+    
     def move(self,board,heights,mark,col):
         height = heights[col]
         move_idx = height*self.cols + col
