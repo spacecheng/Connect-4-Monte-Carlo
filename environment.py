@@ -21,10 +21,13 @@ class connect_4_game:
     def display_board(self, board):
         r = self.rows
         c = self.cols
+        pad = len(str(max(board)))+2
         #equivalent to len(boardlist) - col, -1, -col to loop reverse
-        print(list(range(c)))
+        print("".join(f"{c:>{pad}}" for c in list(range(c))) + "]")
         for i in range(r*c - c, -1, -c):
-            print(board[i:i+c])
+            row = board[i:i+c]
+            print("".join(f"{mark:>{pad}}" for mark in row))
+
     
     def valid_moves(self,heights):
         moveset = [col for col in range(self.cols) if heights[col] < self.rows]
@@ -33,9 +36,9 @@ class connect_4_game:
     def move(self,board,heights,mark,col):
         height = heights[col]
         move_idx = height*self.cols + col
-        new_board = board[:move_idx] + mark + board[move_idx+1:]
+        new_board = board[:move_idx] + (mark,) + board[move_idx+1:]
         col_height = height+1
-        new_heights = heights[:col] + (col_height) + heights[col+1:]
+        new_heights = heights[:col] + (col_height,) + heights[col+1:]
         return new_board, new_heights, move_idx, col_height
     
     def check_win(self, board, heights, mv_mark, mv_col, mv_idx, mv_ht):

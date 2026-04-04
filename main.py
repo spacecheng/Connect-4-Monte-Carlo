@@ -7,21 +7,30 @@ import environment
 def setup():
     game = environment.connect_4_game()
     state = game.init_state()
-    game.display_board(state[0])
+    return game,state
 
 def play(pvp = False): #default play is against bot
-    setup()
     if pvp: #local vs
-        pass
+        end = False
+        print("Player 1 is mark 1 player 2 is mark -1")
+        game,cur_state = setup()
+        board, heights, last_move, who_turn = cur_state
+        moveset = game.valid_moves(heights)
+        while not end:
+            game.display_board(board)
+            print(f"Player {1 if who_turn == 1 else -1}'s turn.\n Valid moves:{moveset}")
+            choice = int(input())
+            while choice not in moveset:
+                print(f"Invalid move, Valid moves:{moveset}")
+                choice = int(input())
+            board, heights, move_idx, col_height = game.move(board,heights,who_turn,choice)
+            end = game.check_win(board,heights,who_turn,choice,move_idx,col_height)
+            if end:
+                game.display_board(board)
+                print(f"Player {1 if who_turn == 1 else -1} Wins (with move on col {choice})")
+                return
+            who_turn = -who_turn
     else: #play against bot
         pass
 
-print("Welcome to our Connect 4 system")
-choice_1 = int(input("Would you like to play against a bot(1) or a nearby friend(2)"))
-if choice_1 == 1:
-    mcts = bot.placeholder()
-    choice_2 = int(input("Would you like to make the first move(1) or let the bot do so(2)?"))
-    if choice_2 == 1:
-        play()
-    else:
-        play(False,True)
+play(True)
