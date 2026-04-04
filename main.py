@@ -9,8 +9,12 @@ def setup():
     state = game.init_state()
     return game,state
 
-def choose_bot():
+def choose_bot(bot_num = None):
     bots = [bot.rand_bot]
+    print("Autoselected bot:", bot_num)
+    if bot_num is not None:
+        print("Apple")
+        return bots[bot_num]
     while True:
         print("Select a bot:")
         print(*(f"{b.name}({i})" for i,b in enumerate(bots)))
@@ -22,7 +26,7 @@ def choose_bot():
     sel_bot = bots[sel]
     return sel_bot
 
-def play(pvp = 1): #default play is against bot
+def play(pvp = 1, debug_skip = False): #default play is against bot
     end = 0
     game,cur_state = setup()
     board, heights, last_move, who_turn = cur_state
@@ -99,9 +103,13 @@ def play(pvp = 1): #default play is against bot
             
     elif pvp == 2: #bot vs bot
         #Option for delay or not debug reasons
-        debug_wait = True
-        bot1 = choose_bot()
-        bot2 = choose_bot()
+        if debug_skip:
+            print("Skipping selection")
+            bot1 = choose_bot(0)
+            bot2 = choose_bot(0)
+        else:
+            bot1 = choose_bot()
+            bot2 = choose_bot()
         bot_menu = [bot1, bot2]
         bot_idx = 0
         sel_bot = bot_menu[bot_idx]
@@ -120,7 +128,7 @@ def play(pvp = 1): #default play is against bot
             game.display_board(board)
             bot_idx = 1 - bot_idx
             who_turn = -who_turn
-            if debug_wait:
+            if not debug_skip:
                 input("Press enter to continue")
 
-play(0)
+play(2, 1)
