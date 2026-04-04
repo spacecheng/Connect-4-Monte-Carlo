@@ -6,6 +6,15 @@ import environment
 import random
 from environment import help_check_win
 
+class Node:
+    def __init__(self, state, parent = None, move = None ):
+        self.state = state
+        self.parent = parent
+        self.move = move
+        self.children = []
+        self.moves_left = state.valid_moves()
+        
+
 class rand_bot:
     name = "random"
     def act(board,heights,moveset):
