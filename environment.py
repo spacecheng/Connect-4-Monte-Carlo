@@ -4,7 +4,7 @@ We will use a state machine like structure
 that returns the next state given 
 current state and action taken
 '''
-def help_check_win(win_cond, width, height, board, mv_mark, mv_col, mv_idx, mv_ht):
+def help_check_win(win_cond, width, height, board, moveset, mv_mark, mv_col, mv_idx, mv_ht):
     max_right = width - mv_col
     max_left = mv_col + 1
     max_up =  height - mv_ht
@@ -12,25 +12,31 @@ def help_check_win(win_cond, width, height, board, mv_mark, mv_col, mv_idx, mv_h
     #vertical check
     if mv_ht >= win_cond:
         for i in range(1,win_cond):
+            print(f"vert {mv_idx} - {i} * {width}) = {mv_idx - (i * width)}")
             if(board[mv_idx - (i * width)] != mv_mark):
                 break
         else: #if no loop break
-            return True
+            print("vrt win")
+            return 1
         
     #horizontal check
     aligned = 1
     for skew in range(1,max_right): #right check
+        print(f"right {mv_idx} + {skew} = {mv_idx + skew}")
         if board[mv_idx + skew] == mv_mark:
             aligned +=1
         else: #no match
             break
     if aligned >= win_cond: #win found
-        return True
+        print("horiz(r) win")
+        return 1
     for skew in range(1,max_left):
+        print(f"left {mv_idx} - {skew} = {mv_idx -skew}")
         if board[mv_idx - skew] == mv_mark:
             aligned +=1
             if aligned >= win_cond: #win found before end of loop
-                return True
+                print("horiz(l) win")
+                return 1
         else: #no match
             break
     #diagonal checks
@@ -38,37 +44,56 @@ def help_check_win(win_cond, width, height, board, mv_mark, mv_col, mv_idx, mv_h
     #up-right check
     ur_lim = max_up if max_up < max_right else max_right
     for skew in range(1,ur_lim):
+        print(f"ur {mv_idx} + {skew} * {width} -1) = {mv_idx + (skew * (width+1))} ")
         if board[mv_idx + (skew * (width+1))] == mv_mark:
             aligned +=1
         else: #no match
             break
+    if aligned >= win_cond: #win found
+        print("ur win")
+        return 1
     #down-left check
     dl_lim = max_down if max_down < max_left else max_left
     for skew in range(1,dl_lim):
+        print(f"dl {mv_idx} - {skew} * {width} -1) ={mv_idx - (skew * (width+1))}")
         if board[mv_idx - (skew * (width+1))] == mv_mark:
             aligned +=1
             if aligned >= win_cond: #win found before end of loop
-                return True
+                print("dl win")
+                return 1
         else: #no match
             break
     aligned = 1
     #up-left check
     ul_lim = max_up if max_up < max_left else max_left
     for skew in range(1,ul_lim):
-        if board[mv_idx + (skew *width -1)] == mv_mark:
+        pos = (mv_idx-skew)+(skew * width)
+        print(f"ul {mv_idx} +({skew} * {width}) = {pos}")
+        if board[pos] == mv_mark:
             aligned +=1
         else: # no match
             break
     if aligned >= win_cond:
-        return True
+        print("ul win")
+        return 1
+    #down-right chck
     dr_lim = max_down if max_down < max_right else max_right
+    print("lim",dr_lim)
+    print(f"move {mv_idx}")
     for skew in range(1,dr_lim):
-        if board[mv_idx - (skew * width -1)] ==mv_mark:
+        pos = (mv_idx+skew)-(skew * width)
+        print(f"dr {mv_idx}+{skew}-{skew * width}) = {pos}")
+        if board[pos] ==mv_mark:
+            if pos < 0:break
             aligned +=1
             if aligned >= win_cond:
-                return True
+                print("dr win")
+                return 1
         else: #no match
             break
+    if len(moveset) == 1:
+        print("tie")
+        return -1
 class connect_4_game:
     def __init__(self, rows = 6, cols = 7, win_cond = 4):
         self.rows = rows
@@ -106,10 +131,10 @@ class connect_4_game:
         new_heights = heights[:col] + (col_height,) + heights[col+1:]
         return new_board, new_heights, move_idx, col_height
     
-    def check_win(self, board, mv_mark, mv_col, mv_idx, mv_ht):
+    def check_win(self, board, moveset, mv_mark, mv_col, mv_idx, mv_ht):
         return help_check_win(
             self.win_cond, self.cols, self.rows,
-            board, mv_mark, mv_col, mv_idx, mv_ht
+            board, moveset, mv_mark, mv_col, mv_idx, mv_ht
         )
 
 
