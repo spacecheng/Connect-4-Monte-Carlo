@@ -26,12 +26,13 @@ def play(pvp = 1): #default play is against bot
     end = 0
     game,cur_state = setup()
     board, heights, last_move, who_turn = cur_state
+    marks = ["0","X","O"]
     if pvp == 0: #local vs
-        print("Player 1 is mark 1 player 2 is mark -1")
+        print("Player 1 is mark X player 2 is mark O")
         while not end == 1:
             moveset = game.valid_moves(heights)
             game.display_board(board)
-            print(f"Player {1 if who_turn == 1 else -1}'s turn.\n Valid moves:{moveset}")
+            print(f"Player {1 if who_turn == 1 else 2}'s turn ({marks[who_turn]}).\n Valid moves:{moveset}")
             choice = int(input())
             while choice not in moveset:
                 print(f"Invalid move, Valid moves:{moveset}")
@@ -40,11 +41,11 @@ def play(pvp = 1): #default play is against bot
             end = game.check_win(board,moveset,who_turn,choice,move_idx,col_height)
             if end == 1:
                 game.display_board(board)
-                print(f"Player {1 if who_turn == 1 else -1} Wins (with move on col {choice})")
+                print(f"Player {1 if who_turn == 1 else 2} Wins (with move on col {choice})")
                 return
             who_turn = -who_turn
     elif pvp == 1: #play against bot
-        print("You are mark 1 and the bot is mark -1")
+        print("You are mark X and the bot is mark O")
         sel_bot = choose_bot()
         while True:
             print("Do you want to go first? (y/n)")
@@ -104,7 +105,7 @@ def play(pvp = 1): #default play is against bot
         bot_menu = [bot1, bot2]
         bot_idx = 0
         sel_bot = bot_menu[bot_idx]
-        print("Bot 1 is mark 1 Bot 2 is mark -1")
+        print("Bot 1 is mark X Bot 2 is mark O")
         who_turn = 1
         while True:
             moveset = game.valid_moves(heights)
