@@ -2,6 +2,8 @@
 This is where all the bot stuff like the 
 tables and choosing action will be defined
 '''
+import environment
+import random
 def check_win(self, board, heights, mv_mark, mv_col, mv_idx, mv_ht):
         win_cond = self.win_cond
         width = self.cols
@@ -69,3 +71,9 @@ def check_win(self, board, heights, mv_mark, mv_col, mv_idx, mv_ht):
                     return True
             else: #no match
                 break
+
+class rand:
+    def act(board,heights,moveset):
+        r = random.random
+        move = moveset[int(r() * len(moveset))]
+        return move
