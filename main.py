@@ -22,11 +22,11 @@ def choose_bot():
     sel_bot = bots[sel]
     return sel_bot
 
-def play(pvp = False): #default play is against bot
+def play(pvp = 1): #default play is against bot
     end = False
     game,cur_state = setup()
     board, heights, last_move, who_turn = cur_state
-    if pvp: #local vs
+    if pvp == 0: #local vs
         print("Player 1 is mark 1 player 2 is mark -1")
         while not end:
             moveset = game.valid_moves(heights)
@@ -43,7 +43,7 @@ def play(pvp = False): #default play is against bot
                 print(f"Player {1 if who_turn == 1 else -1} Wins (with move on col {choice})")
                 return
             who_turn = -who_turn
-    else: #play against bot
+    elif pvp == 1: #play against bot
         print("You are mark 1 and the bot is mark -1")
         sel_bot = choose_bot()
         while True:
@@ -57,6 +57,7 @@ def play(pvp = False): #default play is against bot
                 break
             else:
                 print("Not a valid option")
+
         moveset = game.valid_moves(heights)
         if player_first is True:
             game.display_board(board)
@@ -66,6 +67,7 @@ def play(pvp = False): #default play is against bot
                 if choice in moveset:
                     break
                 print(f"Invalid move, Valid moves:{moveset}")
+
             board, heights, move_idx, col_height = game.move(board,heights,1,choice)
         while not end:
             #bot move
@@ -86,12 +88,40 @@ def play(pvp = False): #default play is against bot
                 if choice in moveset:
                     break
                 print(f"Invalid move, Valid moves:{moveset}")
+            
             board, heights, move_idx, col_height = game.move(board,heights,1,choice)
             end = game.check_win(board,1,choice,move_idx,col_height)
             if end:
                 game.display_board(board)
                 print(f"You Win (with move on col {choice})")
                 return
+            
+    elif pvp == 2: #bot vs bot
+        #Option for delay or not debug reasons
+        debug_wait = True
+        bot1 = choose_bot()
+        bot2 = choose_bot()
+        bot_menu = [bot1, bot2]
+        bot_idx = 0
+        sel_bot = bot_menu[bot_idx]
+        print("Bot 1 is mark 1 Bot 2 is mark -1")
+        who_turn = 1
+        while True:
+            moveset = game.valid_moves(heights)
+            choice = sel_bot.act(board, heights, moveset)
+            print(f"Bot {bot_idx + 1} choice: {choice}")
+            board, heights, move_idx, col_height = game.move(board,heights,who_turn,choice)
+            end = game.check_win(board,who_turn,choice,move_idx,col_height)
+            if end:
+                game.display_board(board)
+                print(f"Bot {bot_idx + 1} Wins (with move on col {choice})")
+                return
+            game.display_board(board)
+            bot_idx = 1 - bot_idx
+            who_turn = -who_turn
+            if debug_wait:
+                input("Press enter to continue")
+
 
 
 
@@ -102,4 +132,4 @@ def play(pvp = False): #default play is against bot
                 
 
 
-play(False)
+play(2)
