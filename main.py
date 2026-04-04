@@ -9,6 +9,19 @@ def setup():
     state = game.init_state()
     return game,state
 
+def choose_bot():
+    bots = [bot.rand_bot]
+    while True:
+        print("Select a bot:")
+        print(*(f"{b.name}({i})" for i,b in enumerate(bots)))
+        sel = int(input())
+        if(sel >= 0 and sel < len(bots)):
+            break
+        else:
+            print("Not a valid option")
+    sel_bot = bots[sel]
+    return sel_bot
+
 def play(pvp = False): #default play is against bot
     end = False
     game,cur_state = setup()
@@ -32,7 +45,7 @@ def play(pvp = False): #default play is against bot
             who_turn = -who_turn
     else: #play against bot
         print("You are mark 1 and the bot is mark -1")
-        sel_bot = bot.rand_bot()
+        sel_bot = choose_bot()
         while True:
             print("Do you want to go first? (y/n)")
             choice = input()
@@ -57,7 +70,8 @@ def play(pvp = False): #default play is against bot
         while not end:
             #bot move
             moveset = game.valid_moves(heights)
-            choice = sel_bot.act(board, moveset)
+            choice = sel_bot.act(board, heights, moveset)
+            print(f"Bot choice: {choice}")
             board, heights, move_idx, col_height = game.move(board,heights,-1,choice)
             end = game.check_win(board,-1,choice,move_idx,col_height)
             if end:
