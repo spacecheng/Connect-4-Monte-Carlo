@@ -9,8 +9,8 @@ def setup():
     state = game.init_state()
     return game,state
 
-def choose_bot(bot_num = None):
-    bots = [bot.rand_bot]
+def choose_bot(game, bot_num = None):
+    bots = [bot.rand_bot(game), bot.smart_rand(game)]
     print("Autoselected bot:", bot_num)
     if bot_num is not None:
         print("Apple")
@@ -50,7 +50,7 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
             who_turn = -who_turn
     elif pvp == 1: #play against bot
         print("You are mark X and the bot is mark O")
-        sel_bot = choose_bot()
+        sel_bot = choose_bot(game)
         while True:
             print("Do you want to go first? (y/n)")
             choice = input()
@@ -73,11 +73,13 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
                     break
                 print(f"Invalid move, Valid moves:{moveset}")
 
-            board, heights, move_idx, col_height = game.move(board,heights,1,choice)
+            cur_state = game.move(board,heights,1,choice)
+            board, heights, move_idx, col_height = cur_state
         while not end == 1:
             #bot move
             moveset = game.valid_moves(heights)
-            choice = sel_bot.act(board, heights, moveset)
+            cur_state = (board, heights, move_idx, col_height)
+            choice = sel_bot.act(cur_state, heights, moveset)
             print(f"Bot choice: {choice}")
             board, heights, move_idx, col_height = game.move(board,heights,-1,choice)
             end = game.check_win(board,moveset,-1,choice,move_idx,col_height)
@@ -105,11 +107,11 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
         #Option for delay or not debug reasons
         if debug_skip:
             print("Skipping selection")
-            bot1 = choose_bot(0)
-            bot2 = choose_bot(0)
+            bot1 = choose_bot(game,0)
+            bot2 = choose_bot(game,0)
         else:
-            bot1 = choose_bot()
-            bot2 = choose_bot()
+            bot1 = choose_bot(game)
+            bot2 = choose_bot(game)
         bot_menu = [bot1, bot2]
         bot_idx = 0
         sel_bot = bot_menu[bot_idx]
@@ -117,7 +119,7 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
         who_turn = 1
         while True:
             moveset = game.valid_moves(heights)
-            choice = sel_bot.act(board, heights, moveset)
+            choice = sel_bot.act(cur_state, heights, moveset)
             print(f"Bot {bot_idx + 1} choice: {choice}")
             board, heights, move_idx, col_height = game.move(board,heights,who_turn,choice)
             end = game.check_win(board,moveset,who_turn,choice,move_idx,col_height)
@@ -131,4 +133,4 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
             if not debug_skip:
                 input("Press enter to continue")
 
-play(2, 1)
+play()

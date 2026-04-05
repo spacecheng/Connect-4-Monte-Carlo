@@ -11,31 +11,33 @@ def help_check_win(win_cond, width, height, board, moveset, mv_mark, mv_col, mv_
     max_down = mv_ht + 1
     #vertical check
     if mv_ht >= win_cond:
+        print("vche", win_cond)
         for i in range(1,win_cond):
             print(f"vert {mv_idx} - {i} * {width}) = {mv_idx - (i * width)}")
             if(board[mv_idx - (i * width)] != mv_mark):
+                print("testing", mv_idx - (i * width), "eee",board[mv_idx - (i * width)], "HHH", mv_mark)
                 break
         else: #if no loop break
-            print("vrt win")
+            #print("vrt win")
             return 1
         
     #horizontal check
     aligned = 1
     for skew in range(1,max_right): #right check
-        print(f"right {mv_idx} + {skew} = {mv_idx + skew}")
+        #print(f"right {mv_idx} + {skew} = {mv_idx + skew}")
         if board[mv_idx + skew] == mv_mark:
             aligned +=1
         else: #no match
             break
     if aligned >= win_cond: #win found
-        print("horiz(r) win")
+        #print("horiz(r) win")
         return 1
     for skew in range(1,max_left):
-        print(f"left {mv_idx} - {skew} = {mv_idx -skew}")
+        #print(f"left {mv_idx} - {skew} = {mv_idx -skew}")
         if board[mv_idx - skew] == mv_mark:
             aligned +=1
             if aligned >= win_cond: #win found before end of loop
-                print("horiz(l) win")
+                #print("horiz(l) win")
                 return 1
         else: #no match
             break
@@ -44,22 +46,22 @@ def help_check_win(win_cond, width, height, board, moveset, mv_mark, mv_col, mv_
     #up-right check
     ur_lim = max_up if max_up < max_right else max_right
     for skew in range(1,ur_lim):
-        print(f"ur {mv_idx} + {skew} * {width} -1) = {mv_idx + (skew * (width+1))} ")
+        #print(f"ur {mv_idx} + {skew} * {width} -1) = {mv_idx + (skew * (width+1))} ")
         if board[mv_idx + (skew * (width+1))] == mv_mark:
             aligned +=1
         else: #no match
             break
     if aligned >= win_cond: #win found
-        print("ur win")
+        #print("ur win")
         return 1
     #down-left check
     dl_lim = max_down if max_down < max_left else max_left
     for skew in range(1,dl_lim):
-        print(f"dl {mv_idx} - {skew} * {width} -1) ={mv_idx - (skew * (width+1))}")
+        #print(f"dl {mv_idx} - {skew} * {width} -1) ={mv_idx - (skew * (width+1))}")
         if board[mv_idx - (skew * (width+1))] == mv_mark:
             aligned +=1
             if aligned >= win_cond: #win found before end of loop
-                print("dl win")
+                #print("dl win")
                 return 1
         else: #no match
             break
@@ -68,32 +70,33 @@ def help_check_win(win_cond, width, height, board, moveset, mv_mark, mv_col, mv_
     ul_lim = max_up if max_up < max_left else max_left
     for skew in range(1,ul_lim):
         pos = (mv_idx-skew)+(skew * width)
-        print(f"ul {mv_idx} +({skew} * {width}) = {pos}")
+        #print(f"ul {mv_idx} +({skew} * {width}) = {pos}")
         if board[pos] == mv_mark:
             aligned +=1
         else: # no match
             break
     if aligned >= win_cond:
-        print("ul win")
+        #print("ul win")
         return 1
     #down-right chck
     dr_lim = max_down if max_down < max_right else max_right
-    print("lim",dr_lim)
-    print(f"move {mv_idx}")
+    #print("lim",dr_lim)
+    #print(f"move {mv_idx}")
     for skew in range(1,dr_lim):
         pos = (mv_idx+skew)-(skew * width)
-        print(f"dr {mv_idx}+{skew}-{skew * width}) = {pos}")
+        #print(f"dr {mv_idx}+{skew}-{skew * width}) = {pos}")
         if board[pos] ==mv_mark:
             if pos < 0:break
             aligned +=1
             if aligned >= win_cond:
-                print("dr win")
+                #print("dr win")
                 return 1
         else: #no match
             break
     if len(moveset) == 1:
-        print("tie")
+        #print("tie")
         return -1
+    return 0
 class connect_4_game:
     def __init__(self, rows = 6, cols = 7, win_cond = 4):
         self.rows = rows
