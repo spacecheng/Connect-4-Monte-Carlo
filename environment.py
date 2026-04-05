@@ -117,7 +117,7 @@ class connect_4_game:
         pad = len(str(max(board)))+2
         #equivalent to len(boardlist) - col, -1, -col to loop reverse
         print("".join(f"{c:>{pad}}" for c in list(range(c))) + "]")
-        marks = ["0","X","O"]
+        marks = ["-","X","O"]
         for i in range(r*c - c, -1, -c):
             row = board[i:i+c]
             print("".join(f"{(marks[mark]):>{pad}}" for mark in row))
