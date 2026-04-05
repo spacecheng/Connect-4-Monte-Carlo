@@ -10,7 +10,7 @@ def setup():
     return game,state
 
 def choose_bot(game, bot_num = None):
-    bots = [bot.rand_bot(game), bot.smart_rand(game)]
+    bots = [bot.rand_bot(game), bot.smart_rand(game), bot.mcts_bot(game)]
     print("Autoselected bot:", bot_num)
     if bot_num is not None:
         print("Apple")
@@ -119,6 +119,7 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
         who_turn = 1
         while True:
             moveset = game.valid_moves(heights)
+            cur_state = (board, heights, None, who_turn)
             choice = sel_bot.act(cur_state, heights, moveset)
             print(f"Bot {bot_idx + 1} choice: {choice}")
             board, heights, move_idx, col_height = game.move(board,heights,who_turn,choice)
@@ -129,6 +130,7 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
                 return
             game.display_board(board)
             bot_idx = 1 - bot_idx
+            sel_bot = bot_menu[bot_idx]
             who_turn = -who_turn
             if not debug_skip:
                 input("Press enter to continue")
