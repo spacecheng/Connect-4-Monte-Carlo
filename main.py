@@ -4,8 +4,8 @@ to actualy train and test the bot
 '''
 import bot
 import environment
-def setup():
-    game = environment.connect_4_game()
+def setup(rows, cols, win_cond):
+    game = environment.connect_4_game(rows, cols, win_cond)
     state = game.init_state()
     return game,state
 
@@ -26,9 +26,9 @@ def choose_bot(game, bot_num = None):
     sel_bot = bots[sel]
     return sel_bot
 
-def play(pvp = 1, debug_skip = False): #default play is against bot
+def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #default play is against bot
     end = 0
-    game,cur_state = setup()
+    game,cur_state = setup(bd_r, bd_c, bd_win_cd)
     board, heights, last_move, who_turn = cur_state
     marks = ["0","X","O"]
     if pvp == 0: #local vs
@@ -64,6 +64,8 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
                 print("Not a valid option")
 
         moveset = game.valid_moves(heights)
+        move_idx = None
+        col_height = None
         if player_first is True:
             game.display_board(board)
             print(f"Your turn.\n Valid moves:{moveset}")
@@ -134,5 +136,35 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
             who_turn = -who_turn
             if not debug_skip:
                 input("Press enter to continue")
+uniq_board_bin = None
+while True:
+    uniq_board_qry = input("Do you want a custom board? (y/n)")
+    if uniq_board_qry == 'y':
+        uniq_board_bin = True
+        break
+    elif uniq_board_qry == 'n':
+        uniq_board_bin = False
+        break
+    else:
+        print("Not a valid answer...")
+        continue
+if uniq_board_bin:
+    bd_r = int(input("Enter board rows:"))
+    bd_c = int(input("Enter board cols:"))
+    bd_win_cd = int(input("Enter amout in a row to win:"))
+while True:
+    print("Which play would you like:")
+    print("(0) Player vs Player")
+    print("(1) Player vs Bot")
+    print("(2) Bot vs Bot")
+    pvp = int(input())
+    if pvp in range(3):
+        break
+    else:
+        print("Not a valid option...")
+if uniq_board_bin:
+    play(bd_r, bd_c, bd_win_cd, pvp)
+else:
+    play(pvp=pvp)
 
-play()
+
