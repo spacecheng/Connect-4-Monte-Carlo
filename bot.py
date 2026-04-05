@@ -36,15 +36,17 @@ class smart_rand:
         r = random.random
         for move in moveset:
             print(f"checking {move}")
-            new_height =heights[move]
+            print(heights)
+            new_height =heights[move]+1
             move_idx = new_height*w + move
             print(f"mvidx = {move_idx}")
-            res = check_win(win_cond,w,h,board,moveset,1,move,move_idx,new_height)
+            print(f"params: {win_cond} {w} {h} {move} {move_idx} {new_height}")
+            res = check_win(win_cond,w,h,board,moveset,1,move,move_idx,new_height+1)
             print(f"result{res}")
             if res == 1:
                 print("found win")
                 return move
-            res = check_win(win_cond,w,h,board,moveset,-1,move,move_idx,new_height)
+            res = check_win(win_cond,w,h,board,moveset,-1,move,move_idx,new_height+1)
             if res == 1:
                 print("found loss")
                 return move
