@@ -10,7 +10,7 @@ def setup(rows, cols, win_cond):
     return game,state
 
 def choose_bot(game, bot_num = None):
-    bots = [bot.rand_bot(game), bot.smart_rand(game), bot.mcts_bot(game)]
+    bots = [bot.rand_bot(game), bot.smart_rand(game), bot.mcts_bot(game,250),bot.mcts_bot(game)]
     print("Autoselected bot:", bot_num)
     if bot_num is not None:
         print("Apple")
@@ -33,7 +33,7 @@ def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #defa
     marks = ["0","X","O"]
     if pvp == 0: #local vs
         print("Player 1 is mark X player 2 is mark O")
-        while not end == 1:
+        while not end == 1 and not end == -1:
             moveset = game.valid_moves(heights)
             game.display_board(board)
             print(f"Player {1 if who_turn == 1 else 2}'s turn ({marks[who_turn]}).\n Valid moves:{moveset}")
@@ -46,6 +46,10 @@ def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #defa
             if end == 1:
                 game.display_board(board)
                 print(f"Player {1 if who_turn == 1 else 2} Wins (with move on col {choice})")
+                return
+            elif end == -1:
+                game.display_board(board)
+                print("Game Ended in a Tie")
                 return
             who_turn = -who_turn
     elif pvp == 1: #play against bot
@@ -77,7 +81,7 @@ def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #defa
 
             cur_state = game.move(board,heights,1,choice)
             board, heights, move_idx, col_height = cur_state
-        while not end == 1:
+        while not end == 1 and not end == -1:
             #bot move
             moveset = game.valid_moves(heights)
             cur_state = (board, heights, move_idx, col_height)
@@ -88,6 +92,10 @@ def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #defa
             if end == 1:
                 game.display_board(board)
                 print(f"The bot Wins (with move on col {choice})")
+                return
+            elif end == -1:
+                game.display_board(board)
+                print("Game Ended in a Tie")
                 return
             moveset = game.valid_moves(heights)
             game.display_board(board)
@@ -104,7 +112,10 @@ def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #defa
                 game.display_board(board)
                 print(f"You Win (with move on col {choice})")
                 return
-            
+            elif end == -1:
+                game.display_board(board)
+                print("Game Ended in a Tie")
+                return
     elif pvp == 2: #bot vs bot
         #Option for delay or not debug reasons
         if debug_skip:
@@ -129,6 +140,10 @@ def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #defa
             if end == 1:
                 game.display_board(board)
                 print(f"Bot {bot_idx + 1} Wins (with move on col {choice})")
+                return
+            elif end == -1:
+                game.display_board(board)
+                print("Game Ended in a Tie")
                 return
             game.display_board(board)
             bot_idx = 1 - bot_idx
