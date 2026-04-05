@@ -78,6 +78,7 @@ def play(pvp = 1, debug_skip = False): #default play is against bot
         while not end == 1:
             #bot move
             moveset = game.valid_moves(heights)
+            cur_state = (board, heights, move_idx, col_height)
             choice = sel_bot.act(cur_state, heights, moveset)
             print(f"Bot choice: {choice}")
             board, heights, move_idx, col_height = game.move(board,heights,-1,choice)

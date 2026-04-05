@@ -11,10 +11,11 @@ def help_check_win(win_cond, width, height, board, moveset, mv_mark, mv_col, mv_
     max_down = mv_ht + 1
     #vertical check
     if mv_ht >= win_cond:
-        print("vche")
+        print("vche", win_cond)
         for i in range(1,win_cond):
             print(f"vert {mv_idx} - {i} * {width}) = {mv_idx - (i * width)}")
             if(board[mv_idx - (i * width)] != mv_mark):
+                print("testing", mv_idx - (i * width), "eee",board[mv_idx - (i * width)], "HHH", mv_mark)
                 break
         else: #if no loop break
             #print("vrt win")
@@ -95,6 +96,7 @@ def help_check_win(win_cond, width, height, board, moveset, mv_mark, mv_col, mv_
     if len(moveset) == 1:
         #print("tie")
         return -1
+    return 0
 class connect_4_game:
     def __init__(self, rows = 6, cols = 7, win_cond = 4):
         self.rows = rows
