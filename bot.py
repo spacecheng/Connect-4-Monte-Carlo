@@ -38,14 +38,13 @@ class Node:
 
 
 class mcts_bot:
-    name = "mcts"
-    iterations = 1000
-
-    def __init__(self, game):
+    def __init__(self, game, iterations = 1000):
         self.game = game
+        self.iterations = iterations
         self._cols = game.cols
         self._rows = game.rows
         self._wc = game.win_cond
+        self.name = f"MCTS({iterations})"
 
     def _check_win(self, board, mark, col, move_idx, col_height):
         """Fast win check without debug prints, used during rollouts."""
