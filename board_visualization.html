@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect 4 — Board Visualization</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; overflow-x: hidden; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 30px 24px; }
+  h1 { font-size: 1.8rem; margin-bottom: 4px; }
+  .sub { color: #7d8590; margin-bottom: 32px; }
+  .panels { display: flex; gap: 32px; flex-wrap: wrap; }
+  .panel { flex: 1; min-width: 340px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; }
+  .panel h2 { font-size: 1.1rem; color: #58a6ff; margin-bottom: 16px; }
+  .panel h3 { font-size: 0.95rem; color: #7d8590; margin: 16px 0 8px; font-weight: 500; }
+
+  /* --- Connect 4 Board --- */
+  .board-area { display: flex; flex-direction: column; align-items: center; }
+  .board { background: #1a3a6e; border-radius: 10px; padding: 10px; display: inline-block; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+  .board-row { display: flex; gap: 6px; margin-bottom: 6px; }
+  .board-row:last-child { margin-bottom: 0; }
+  .cell { width: 64px; height: 64px; border-radius: 50%; background: #0d1117; position: relative; transition: background 0.3s ease, box-shadow 0.3s ease; }
+  .cell.red { background: #ef4444; box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3), 0 0 12px rgba(239,68,68,0.3); }
+  .cell.yellow { background: #eab308; box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3), 0 0 12px rgba(234,179,8,0.3); }
+  .cell.win { animation: pulse 0.6s ease-in-out infinite alternate; }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.08); box-shadow: 0 0 20px rgba(255,255,255,0.4); } }
+  .col-labels { display: flex; gap: 6px; padding: 0 10px; margin-top: 8px; }
+  .col-label { width: 64px; text-align: center; font-size: 0.85rem; color: #7d8590; font-weight: 600; }
+
+  /* --- Index Grid --- */
+  .index-grid { display: inline-block; }
+  .idx-row { display: flex; gap: 4px; margin-bottom: 4px; }
+  .idx-cell { width: 52px; height: 42px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+              font-size: 0.8rem; font-weight: 600; font-family: 'SF Mono', 'Consolas', monospace; border: 1px solid #30363d; transition: all 0.2s; }
+  .idx-cell.empty { background: #21262d; color: #7d8590; }
+  .idx-cell.filled-p1 { background: #3b1a1a; color: #ef4444; border-color: #ef4444; }
+  .idx-cell.filled-p2 { background: #3b3a1a; color: #eab308; border-color: #eab308; }
+  .idx-cell.highlight { background: #1a3a1a; color: #4ade80; border-color: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.3); }
+
+  /* --- Controls --- */
+  .controls { display: flex; align-items: center; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+  button { background: #238636; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 0.95rem;
+           cursor: pointer; font-weight: 600; transition: background 0.2s; }
+  button:hover { background: #2ea043; }
+  button.secondary { background: #30363d; }
+  button.secondary:hover { background: #484f58; }
+  .status { font-size: 0.95rem; color: #58a6ff; font-weight: 500; }
+  .move-counter { font-size: 0.85rem; color: #7d8590; }
+  .legend { display: flex; gap: 18px; margin-top: 14px; font-size: 0.85rem; color: #7d8590; }
+  .legend-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 6px; }
+
+  /* --- Formula Box --- */
+  .formula { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 14px 18px; margin-top: 12px; font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.9rem; }
+  .formula .highlight { color: #4ade80; }
+  .formula .dim { color: #7d8590; }
+
+  /* --- Tab Switcher --- */
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab { padding: 8px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+         background: #21262d; color: #7d8590; border: 1px solid #30363d; transition: all 0.2s; }
+  .tab.active { background: #1a3a6e; color: #58a6ff; border-color: #58a6ff; }
+  .tab:hover:not(.active) { background: #30363d; color: #e6edf3; }
+  .view { display: none; }
+  .view.active { display: block; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>Connect 4 — Interactive Board Visualization</h1>
+<p class="sub">Group 13 · COSC 4368 · Use this during your presentation for live demos</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('replay')">Game Replay: MCTS vs Random</div>
+  <div class="tab" onclick="switchTab('indexing')">Flat Tuple Indexing</div>
+  <div class="tab" onclick="switchTab('mcts-tree')">MCTS Decision Logic</div>
+</div>
+
+<!-- ===== TAB 1: Game Replay ===== -->
+<div id="tab-replay" class="view active">
+  <div class="panels">
+    <div class="panel" style="flex:1.3">
+      <h2>Game Board</h2>
+      <div class="board-area">
+        <div class="board" id="game-board"></div>
+        <div class="col-labels" id="col-labels"></div>
+      </div>
+      <div class="controls">
+        <button onclick="stepForward()">Next Move ▶</button>
+        <button class="secondary" onclick="autoPlay()">Auto-Play ⏩</button>
+        <button class="secondary" onclick="resetGame()">Reset ↺</button>
+        <span class="status" id="status">MCTS (Red) to move</span>
+      </div>
+      <div class="move-counter" id="move-counter">Move 0 / 12</div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#ef4444"></span> MCTS (Player 1)</span>
+        <span><span class="legend-dot" style="background:#eab308"></span> Random (Player 2)</span>
+      </div>
+    </div>
+    <div class="panel" style="flex:0.7">
+      <h2>Move Log</h2>
+      <div id="move-log" style="font-family:monospace; font-size:0.85rem; line-height:1.8; max-height:420px; overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 2: Flat Tuple Indexing ===== -->
+<div id="tab-indexing" class="view">
+  <div class="panels">
+    <div class="panel" style="flex:1.2">
+      <h2>Board as Flat Tuple — Index Mapping</h2>
+      <p style="color:#7d8590; font-size:0.9rem; margin-bottom:16px;">Each cell shows its flat tuple index. Hover to see the <code>row × cols + col</code> formula.</p>
+      <div class="board-area">
+        <div class="index-grid" id="index-grid"></div>
+      </div>
+      <div class="formula" style="margin-top:20px;">
+        <span class="dim">index = </span><span class="highlight">row</span> <span class="dim">×</span> <span class="highlight">cols</span> <span class="dim">+</span> <span class="highlight">col</span>
+        <br><span class="dim">For 7×6 board: index = </span><span class="highlight" id="formula-display">row × 7 + col</span>
+      </div>
+      <h3>Why Flat Tuple?</h3>
+      <div style="color:#7d8590; font-size:0.88rem; line-height:1.7;">
+        <strong style="color:#e6edf3;">Immutable</strong> — tuples can't be mutated, safe to copy into MCTS tree nodes<br>
+        <strong style="color:#e6edf3;">O(1) access</strong> — single index lookup vs nested list[row][col]<br>
+        <strong style="color:#e6edf3;">Fast copy</strong> — tuple slicing creates new board states efficiently during rollouts<br>
+        <strong style="color:#e6edf3;">Column heights</strong> — separate height tuple gives O(1) piece placement
+      </div>
+    </div>
+    <div class="panel" style="flex:0.8">
+      <h2>Python Representation</h2>
+      <pre id="tuple-display" style="font-family:'SF Mono','Consolas',monospace; font-size:0.82rem; line-height:1.6; color:#7d8590; white-space:pre-wrap; word-break:break-all;"></pre>
+      <h3>Column Heights</h3>
+      <pre id="heights-display" style="font-family:'SF Mono','Consolas',monospace; font-size:0.88rem; color:#58a6ff;"></pre>
+      <h3>Click a Cell</h3>
+      <p style="color:#7d8590; font-size:0.88rem;">Click any cell in the grid to highlight it and see the index math.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 3: MCTS Decision Logic ===== -->
+<div id="tab-mcts-tree" class="view">
+  <div class="panels">
+    <div class="panel">
+      <h2>MCTS — The Four Phases (1000× per move)</h2>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:8px;">
+
+        <div style="flex:1; min-width:220px; background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:18px;">
+          <div style="font-size:1.5rem; margin-bottom:8px;">1️⃣</div>
+          <h3 style="color:#58a6ff; margin:0 0 8px;">Selection</h3>
+          <p style="color:#7d8590; font-size:0.85rem; line-height:1.6;">
+            Start at root. Walk down the tree picking the child with the highest <strong style="color:#e6edf3;">UCT score</strong>:
+          </p>
+          <div class="formula" style="font-size:0.8rem; margin-top:10px; text-align:center;">
+            <span class="highlight">w/n</span> <span class="dim">+</span> <span class="highlight">C</span><span class="dim">√(ln(N)/n)</span>
+          </div>
+          <p style="color:#7d8590; font-size:0.82rem; margin-top:8px; line-height:1.5;">
+            <strong style="color:#4ade80;">w/n</strong> = exploit (high win rate)<br>
+            <strong style="color:#4ade80;">C√(ln(N)/n)</strong> = explore (less visited)
+          </p>
+        </div>
+
+        <div style="flex:1; min-width:220px; background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:18px;">
+          <div style="font-size:1.5rem; margin-bottom:8px;">2️⃣</div>
+          <h3 style="color:#eab308; margin:0 0 8px;">Expansion</h3>
+          <p style="color:#7d8590; font-size:0.85rem; line-height:1.6;">
+            When we reach a node with <strong style="color:#e6edf3;">untried moves</strong>, pick one randomly and add it as a new child node in the tree.
+          </p>
+          <p style="color:#7d8590; font-size:0.82rem; margin-top:10px;">
+            The child stores a copy of the board state after that move.
+          </p>
+        </div>
+
+        <div style="flex:1; min-width:220px; background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:18px;">
+          <div style="font-size:1.5rem; margin-bottom:8px;">3️⃣</div>
+          <h3 style="color:#ef4444; margin:0 0 8px;">Simulation</h3>
+          <p style="color:#7d8590; font-size:0.85rem; line-height:1.6;">
+            From the new node, play <strong style="color:#e6edf3;">random moves</strong> for both sides until someone wins or it's a draw. This is the "rollout."
+          </p>
+          <p style="color:#7d8590; font-size:0.82rem; margin-top:10px;">
+            Random play averages out — good positions tend to win more rollouts.
+          </p>
+        </div>
+
+        <div style="flex:1; min-width:220px; background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:18px;">
+          <div style="font-size:1.5rem; margin-bottom:8px;">4️⃣</div>
+          <h3 style="color:#a855f7; margin:0 0 8px;">Backpropagation</h3>
+          <p style="color:#7d8590; font-size:0.85rem; line-height:1.6;">
+            Walk back up to root. Every node on the path gets its <strong style="color:#e6edf3;">visit count</strong> incremented and <strong style="color:#e6edf3;">win count</strong> updated.
+          </p>
+          <p style="color:#7d8590; font-size:0.82rem; margin-top:10px;">
+            After 1000 iterations, pick the root's most-visited child.
+          </p>
+        </div>
+
+      </div>
+
+      <div style="margin-top:24px; background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:20px;">
+        <h3 style="color:#58a6ff; margin:0 0 12px;">Live Iteration Counter</h3>
+        <p style="color:#7d8590; font-size:0.88rem; margin-bottom:12px;">Watch 1000 iterations accumulate. Each bar represents visits to that column's child node.</p>
+        <div style="display:flex; align-items:flex-end; gap:12px; height:160px; padding:0 20px;" id="iter-bars"></div>
+        <div style="display:flex; gap:12px; padding:0 20px; margin-top:6px;" id="iter-labels"></div>
+        <div class="controls" style="margin-top:16px;">
+          <button onclick="runIterSim()">Run 1000 Iterations ▶</button>
+          <button class="secondary" onclick="resetIterSim()">Reset</button>
+          <span class="status" id="iter-status">Ready</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const ROWS = 6, COLS = 7;
+
+const RECORDED_GAME = [
+  {"player": 1, "col": 1, "row": 0, "bot": "MCTS"},
+  {"player": -1, "col": 0, "row": 0, "bot": "Random"},
+  {"player": 1, "col": 4, "row": 0, "bot": "MCTS"},
+  {"player": -1, "col": 3, "row": 0, "bot": "Random"},
+  {"player": 1, "col": 3, "row": 1, "bot": "MCTS"},
+  {"player": -1, "col": 4, "row": 1, "bot": "Random"},
+  {"player": 1, "col": 4, "row": 2, "bot": "MCTS"},
+  {"player": -1, "col": 4, "row": 3, "bot": "Random"},
+  {"player": 1, "col": 3, "row": 2, "bot": "MCTS"},
+  {"player": -1, "col": 2, "row": 0, "bot": "Random"},
+  {"player": 1, "col": 3, "row": 3, "bot": "MCTS"},
+  {"player": -1, "col": 4, "row": 4, "bot": "Random"},
+  {"player": 1, "col": 3, "row": 4, "bot": "MCTS"},
+];
+const WINNER = { "winner": 1, "bot": "MCTS" };
+
+let grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+let moveIdx = 0;
+let autoTimer = null;
+
+function buildBoard() {
+  const board = document.getElementById('game-board');
+  const labels = document.getElementById('col-labels');
+  board.innerHTML = '';
+  labels.innerHTML = '';
+  for (let r = ROWS - 1; r >= 0; r--) {
+    const row = document.createElement('div');
+    row.className = 'board-row';
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = `cell-${r}-${c}`;
+      row.appendChild(cell);
+    }
+    board.appendChild(row);
+  }
+  for (let c = 0; c < COLS; c++) {
+    const lbl = document.createElement('div');
+    lbl.className = 'col-label';
+    lbl.textContent = c;
+    labels.appendChild(lbl);
+  }
+}
+
+function updateBoard() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.getElementById(`cell-${r}-${c}`);
+      cell.className = 'cell';
+      if (grid[r][c] === 1) cell.classList.add('red');
+      else if (grid[r][c] === -1) cell.classList.add('yellow');
+    }
+  }
+}
+
+function stepForward() {
+  if (moveIdx >= RECORDED_GAME.length) {
+    document.querySelectorAll('.cell.red').forEach(c => {
+      if (isWinningCell(c)) c.classList.add('win');
+    });
+    document.getElementById('status').textContent = 'MCTS wins! (vertical connect-4 in col 3)';
+    return;
+  }
+  const move = RECORDED_GAME[moveIdx];
+  grid[move.row][move.col] = move.player;
+  updateBoard();
+  const cell = document.getElementById(`cell-${move.row}-${move.col}`);
+  cell.style.transform = 'scale(1.15)';
+  setTimeout(() => cell.style.transform = '', 200);
+  moveIdx++;
+
+  const log = document.getElementById('move-log');
+  const color = move.player === 1 ? '#ef4444' : '#eab308';
+  const name = move.player === 1 ? 'MCTS' : 'Random';
+  log.innerHTML += `<div><span style="color:${color}">●</span> Move ${moveIdx}: <strong>${name}</strong> → col ${move.col}</div>`;
+  log.scrollTop = log.scrollHeight;
+
+  document.getElementById('move-counter').textContent = `Move ${moveIdx} / ${RECORDED_GAME.length}`;
+  if (moveIdx >= RECORDED_GAME.length) {
+    document.getElementById('status').innerHTML = '<strong style="color:#ef4444">MCTS wins!</strong> Vertical connect-4 in column 3';
+    highlightWin();
+  } else {
+    const next = RECORDED_GAME[moveIdx];
+    const nextName = next.player === 1 ? 'MCTS (Red)' : 'Random (Yellow)';
+    document.getElementById('status').textContent = `${nextName} to move`;
+  }
+}
+
+function highlightWin() {
+  for (let r = 1; r <= 4; r++) {
+    const cell = document.getElementById(`cell-${r}-3`);
+    if (cell) cell.classList.add('win');
+  }
+}
+
+function isWinningCell(cell) { return false; }
+
+function autoPlay() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; return; }
+  autoTimer = setInterval(() => {
+    if (moveIdx >= RECORDED_GAME.length) { clearInterval(autoTimer); autoTimer = null; return; }
+    stepForward();
+  }, 800);
+}
+
+function resetGame() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+  moveIdx = 0;
+  updateBoard();
+  document.getElementById('move-log').innerHTML = '';
+  document.getElementById('status').textContent = 'MCTS (Red) to move';
+  document.getElementById('move-counter').textContent = `Move 0 / ${RECORDED_GAME.length}`;
+  document.querySelectorAll('.win').forEach(c => c.classList.remove('win'));
+}
+
+// ===== Tab 2: Index Grid =====
+function buildIndexGrid() {
+  const container = document.getElementById('index-grid');
+  container.innerHTML = '';
+  for (let r = ROWS - 1; r >= 0; r--) {
+    const row = document.createElement('div');
+    row.className = 'idx-row';
+    for (let c = 0; c < COLS; c++) {
+      const idx = r * COLS + c;
+      const cell = document.createElement('div');
+      cell.className = 'idx-cell empty';
+      cell.textContent = idx;
+      cell.title = `row=${r}, col=${c} → ${r}×7+${c} = ${idx}`;
+      cell.addEventListener('click', () => highlightIndex(r, c, idx));
+      cell.addEventListener('mouseenter', () => {
+        document.getElementById('formula-display').textContent = `${r} × 7 + ${c} = ${idx}`;
+      });
+      row.appendChild(cell);
+    }
+    container.appendChild(row);
+  }
+  updateTupleDisplay();
+}
+
+function highlightIndex(row, col, idx) {
+  document.querySelectorAll('.idx-cell').forEach(c => c.classList.remove('highlight'));
+  const cells = document.querySelectorAll('.idx-cell');
+  const targetIdx = (ROWS - 1 - row) * COLS + col;
+  cells[targetIdx].classList.add('highlight');
+  document.getElementById('formula-display').textContent = `${row} × 7 + ${col} = ${idx}`;
+}
+
+function updateTupleDisplay() {
+  const vals = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      vals.push('0');
+    }
+  }
+  let display = 'board = (\n';
+  for (let r = 0; r < ROWS; r++) {
+    const slice = vals.slice(r * COLS, (r + 1) * COLS);
+    display += `  ${slice.join(', ')},  # row ${r}\n`;
+  }
+  display += ')\n\n# 42 elements total\n# index = row × 7 + col';
+  document.getElementById('tuple-display').textContent = display;
+  document.getElementById('heights-display').textContent = 'heights = (0, 0, 0, 0, 0, 0, 0)\n# O(1) piece placement';
+}
+
+// ===== Tab 3: Iteration Simulator =====
+const SIM_VISITS = [187, 72, 103, 298, 156, 112, 72];
+const SIM_WINS   = [112, 28, 51, 201, 89, 58, 27];
+
+function buildIterBars() {
+  const bars = document.getElementById('iter-bars');
+  const labels = document.getElementById('iter-labels');
+  bars.innerHTML = '';
+  labels.innerHTML = '';
+  const max = Math.max(...SIM_VISITS);
+  for (let c = 0; c < COLS; c++) {
+    const bar = document.createElement('div');
+    bar.id = `iter-bar-${c}`;
+    bar.style.cssText = `width:60px; background:#30363d; border-radius:6px 6px 0 0; height:0px; transition:height 0.3s;
+      display:flex; align-items:flex-start; justify-content:center; padding-top:6px; font-size:0.75rem; color:#7d8590; font-weight:600;`;
+    bars.appendChild(bar);
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'width:60px; text-align:center; font-size:0.82rem; color:#7d8590;';
+    lbl.textContent = `Col ${c}`;
+    labels.appendChild(lbl);
+  }
+}
+
+let iterStep = 0;
+let iterTimer = null;
+
+function runIterSim() {
+  if (iterTimer) return;
+  iterStep = 0;
+  const total = 1000;
+  const steps = 50;
+  const perStep = total / steps;
+  let current = Array(COLS).fill(0);
+  const status = document.getElementById('iter-status');
+
+  iterTimer = setInterval(() => {
+    iterStep++;
+    const progress = iterStep / steps;
+    const maxH = Math.max(...SIM_VISITS);
+    for (let c = 0; c < COLS; c++) {
+      current[c] = Math.round(SIM_VISITS[c] * progress);
+      const bar = document.getElementById(`iter-bar-${c}`);
+      const h = (current[c] / maxH) * 140;
+      const winRate = Math.round((SIM_WINS[c] / SIM_VISITS[c]) * 100 * progress + (50 * (1 - progress)));
+      bar.style.height = h + 'px';
+      const isMax = c === 3;
+      bar.style.background = isMax ? '#238636' : '#30363d';
+      bar.textContent = current[c];
+      bar.style.color = isMax ? '#fff' : '#7d8590';
+    }
+    status.textContent = `Iteration ${Math.round(iterStep * perStep)} / ${total}`;
+
+    if (iterStep >= steps) {
+      clearInterval(iterTimer);
+      iterTimer = null;
+      status.innerHTML = 'Done — <strong style="color:#4ade80">Col 3 selected</strong> (298 visits, 67.4% win rate)';
+      document.getElementById('iter-bar-3').style.boxShadow = '0 0 16px rgba(74,222,128,0.4)';
+    }
+  }, 60);
+}
+
+function resetIterSim() {
+  if (iterTimer) { clearInterval(iterTimer); iterTimer = null; }
+  iterStep = 0;
+  for (let c = 0; c < COLS; c++) {
+    const bar = document.getElementById(`iter-bar-${c}`);
+    bar.style.height = '0px';
+    bar.textContent = '';
+    bar.style.background = '#30363d';
+    bar.style.boxShadow = 'none';
+  }
+  document.getElementById('iter-status').textContent = 'Ready';
+}
+
+// ===== Tab Switching =====
+function switchTab(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== Init =====
+buildBoard();
+updateBoard();
+buildIndexGrid();
+buildIterBars();
+document.getElementById('move-counter').textContent = `Move 0 / ${RECORDED_GAME.length}`;
+</script>
+</body>
+</html>
