@@ -148,7 +148,7 @@ def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #defa
             end = game.check_win(board,moveset,who_turn,choice,move_idx,col_height)
             if end == 1:
                 game.display_board(board)
-                print(f"Bot {bot_idx + 1}({sel_bot.name}) Wins (on turn {turns} with move on col {choice})")
+                print(f"Bot {bot_idx + 1}({sel_bot.name}) Wins (on turn {turns} with move on col {choice}) against Bot {2 - bot_idx}")
                 return
             elif end == -1:
                 game.display_board(board)
