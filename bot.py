@@ -194,3 +194,48 @@ class smart_rand:
                 return move
         move = moveset[int(r() * len(moveset))]
         return move
+class smart_rand_stack:
+    name = "random+stackcheck"
+    def __init__(self,game):
+        self.game = game
+    def act(self,state,heights,moveset):
+        game = self.game
+        board, _, move_idx, _ = state
+        win_cond = self.game.win_cond
+        h = game.rows
+        w = game.cols
+        r = random.random
+        for move in moveset:
+            print(f"checking {move}")
+            print(heights)
+            new_height =heights[move]
+            move_idx = new_height*w + move
+            print(f"mvidx = {move_idx}")
+            print("Given board")
+            game.display_board(board)
+            #slightly different new_height
+            new_height+= 1
+            res = check_win(win_cond,w,h,board,moveset,1,move,move_idx,new_height)
+            print(f"result{res}")
+            if res == 1:
+                print("found win")
+                return move
+            res = check_win(win_cond,w,h,board,moveset,-1,move,move_idx,new_height)
+            print(res)
+            if res == 1:
+                print("found loss")
+                return move
+            print("No surface win/loss found")
+            #new stack check
+            if new_height < h:
+                board, heights, _, col_height = game.move(board,heights,1,move)
+                res = 0
+                print("Checking stack")
+                temp_move_idx = new_height*w + move
+                new_height += 1
+                temp_moveset = game.valid_moves(temp_heights)
+                res = check_win(win_cond, w, h, temp_board, temp_moveset, -1, move, temp_move_idx, new_height)
+                
+            
+        move = moveset[int(r() * len(moveset))]
+        return move
