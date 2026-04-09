@@ -9,18 +9,25 @@ def setup(rows, cols, win_cond):
     state = game.init_state()
     return game,state
 
-def choose_bot(game, bot_num = None):
+def choose_bot(game, bot_num = None,cust_mcts = None):
     bots = [bot.rand_bot(game), bot.smart_rand(game), bot.mcts_bot(game,250),bot.mcts_bot(game)]
     print("Autoselected bot:", bot_num)
     if bot_num is not None:
+        if cust_mcts is not None:
+            return bot.mcts_bot(game,cust_mcts)
         print("Apple")
         return bots[bot_num]
+    end_num = len(bots)
     while True:
         print("Select a bot:")
-        print(*(f"{b.name}({i})" for i,b in enumerate(bots)))
+        print(*(f"{b.name}({i})" for i,b in enumerate(bots)),f"MCTS(custom)({end_num})")
         sel = int(input())
         if(sel >= 0 and sel < len(bots)):
             break
+        elif sel == end_num:
+            print("How much iterations?")
+            its = int(input())
+            return bot.mcts_bot(game,its)
         else:
             print("Not a valid option")
     sel_bot = bots[sel]
@@ -130,16 +137,18 @@ def play(bd_r = 6, bd_c = 7, bd_win_cd = 4,  pvp = 1, debug_skip = False): #defa
         sel_bot = bot_menu[bot_idx]
         print("Bot 1 is mark X Bot 2 is mark O")
         who_turn = 1
+        turns = 0
         while True:
             moveset = game.valid_moves(heights)
             cur_state = (board, heights, None, who_turn)
             choice = sel_bot.act(cur_state, heights, moveset)
+            turns +=1
             print(f"Bot {bot_idx + 1} choice: {choice}")
             board, heights, move_idx, col_height = game.move(board,heights,who_turn,choice)
             end = game.check_win(board,moveset,who_turn,choice,move_idx,col_height)
             if end == 1:
                 game.display_board(board)
-                print(f"Bot {bot_idx + 1} Wins (with move on col {choice})")
+                print(f"Bot {bot_idx + 1}({sel_bot.name}) Wins (on turn {turns} with move on col {choice}) against Bot {2 - bot_idx}")
                 return
             elif end == -1:
                 game.display_board(board)
